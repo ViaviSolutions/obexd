@@ -48,6 +48,15 @@
 
 #define DEFAULT_DEFER_TIMEOUT 30
 
+// Work-around for old glibc that doesn't expose SO_PROTOCOL and SO_DOMAIN
+#ifndef SO_PROTOCOL
+#define SO_PROTOCOL 38
+#endif
+
+#ifndef SO_DOMAIN
+#define SO_DOMAIN 39
+#endif
+
 typedef enum {
 	BT_IO_L2CAP,
 	BT_IO_RFCOMM,
