@@ -365,7 +365,7 @@ static const GDBusMethodTable manager_methods[] = {
 static const GDBusSignalTable manager_signals[] = {
 	{ GDBUS_SIGNAL("TransferStarted", GDBUS_ARGS({ "transfer", "o"})) },
 	{ GDBUS_SIGNAL("TransferCompleted", GDBUS_ARGS({ "transfer", "o" },
-							{ "success", "b" })) },
+							{ "success", "b" }, { "name", "s" })) },
 	{ GDBUS_SIGNAL("SessionCreated", GDBUS_ARGS({ "session", "o" })) },
 	{ GDBUS_SIGNAL("SessionRemoved", GDBUS_ARGS({ "session", "o" })) },
 	{ }
@@ -451,6 +451,7 @@ static void emit_transfer_completed(struct obex_session *os, gboolean success)
 			OBEX_MANAGER_INTERFACE, "TransferCompleted",
 			DBUS_TYPE_OBJECT_PATH, &path,
 			DBUS_TYPE_BOOLEAN, &success,
+			DBUS_TYPE_STRING, &os->name,
 			DBUS_TYPE_INVALID);
 
 	g_free(path);
