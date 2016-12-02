@@ -132,6 +132,9 @@ static void dbus_message_iter_append_variant(DBusMessageIter *iter,
 	case DBUS_TYPE_UINT32:
 		sig = DBUS_TYPE_UINT32_AS_STRING;
 		break;
+	case DBUS_TYPE_UINT64:
+		sig = DBUS_TYPE_UINT64_AS_STRING;
+		break;
 	case DBUS_TYPE_BOOLEAN:
 		sig = DBUS_TYPE_BOOLEAN_AS_STRING;
 		break;
@@ -311,6 +314,46 @@ static DBusMessage *transfer_cancel(DBusConnection *connection,
 	return dbus_message_new_method_return(msg);
 }
 
+static void transfer_append_dbus_properties(struct obex_session *os,
+							DBusMessageIter *dict)
+{
+    if (os->name != NULL)
+        dbus_message_iter_append_dict_entry(dict, "Name", DBUS_TYPE_STRING, &os->name);
+    if (os->destname != NULL)
+        dbus_message_iter_append_dict_entry(dict, "DestName", DBUS_TYPE_STRING, &os->destname);
+    if (os->type != NULL)
+        dbus_message_iter_append_dict_entry(dict, "Type", DBUS_TYPE_STRING, &os->type);
+    if (os->path != NULL)
+        dbus_message_iter_append_dict_entry(dict, "Path", DBUS_TYPE_STRING, &os->path);
+	dbus_message_iter_append_dict_entry(dict, "Size", DBUS_TYPE_UINT64, &os->size);
+}
+
+static DBusMessage *transfer_get_properties(DBusConnection *connection,
+					DBusMessage *message, void *user_data)
+{
+	struct obex_session *os = user_data;
+	DBusMessage *reply;
+	DBusMessageIter iter, dict;
+
+	reply = dbus_message_new_method_return(message);
+	if (!reply)
+		return NULL;
+
+	dbus_message_iter_init_append(reply, &iter);
+	dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
+						DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING \
+                        DBUS_TYPE_STRING_AS_STRING \
+                        DBUS_TYPE_VARIANT_AS_STRING \
+                        DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+						&dict);
+
+	transfer_append_dbus_properties(os, &dict);
+
+	dbus_message_iter_close_container(&iter, &dict);
+
+	return reply;
+}
+
 static const GDBusMethodTable manager_methods[] = {
 	{ GDBUS_METHOD("RegisterAgent",
 			GDBUS_ARGS({ "agent", "o" }), NULL, register_agent) },
@@ -329,6 +372,9 @@ static const GDBusSignalTable manager_signals[] = {
 };
 
 static const GDBusMethodTable transfer_methods[] = {
+	{ GDBUS_METHOD("GetProperties",
+				NULL, GDBUS_ARGS({ "properties", "a{sv}" }),
+				transfer_get_properties) },
 	{ GDBUS_METHOD("Cancel", NULL, NULL, transfer_cancel) },
 	{ }
 };
