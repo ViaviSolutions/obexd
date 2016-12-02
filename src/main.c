@@ -136,6 +136,7 @@ static gboolean option_detach = TRUE;
 static char *option_debug = NULL;
 
 static char *option_root = NULL;
+static char *option_incoming = NULL;
 static char *option_root_setup = NULL;
 static char *option_capability = NULL;
 static char *option_plugin = NULL;
@@ -167,6 +168,8 @@ static GOptionEntry options[] = {
 				"and relative can be used, but relative paths "
 				"are assumed to be relative to user $HOME "
 				"folder", "PATH" },
+	{ "incoming", 'i', 0, G_OPTION_ARG_STRING, &option_incoming,
+				"Specify incoming folder location", "PATH" },
 	{ "root-setup", 'S', 0, G_OPTION_ARG_STRING, &option_root_setup,
 				"Root folder setup script", "SCRIPT" },
 	{ "symlinks", 'l', 0, G_OPTION_ARG_NONE, &option_symlinks,
@@ -192,6 +195,11 @@ gboolean obex_option_auto_accept(void)
 const char *obex_option_root_folder(void)
 {
 	return option_root;
+}
+
+const char *obex_option_incoming_folder(void)
+{
+	return option_incoming;
 }
 
 gboolean obex_option_symlinks(void)
@@ -306,6 +314,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
+    if (option_incoming == NULL) {
+        option_incoming = g_strdup(option_root);
+    }
+
 	if (option_capability == NULL)
 		option_capability = g_strdup(DEFAULT_CAP_FILE);
 
@@ -334,6 +346,7 @@ int main(int argc, char *argv[])
 	g_main_loop_unref(main_loop);
 
 	g_free(option_capability);
+	g_free(option_incoming);
 	g_free(option_root);
 
 	__obex_log_cleanup();
